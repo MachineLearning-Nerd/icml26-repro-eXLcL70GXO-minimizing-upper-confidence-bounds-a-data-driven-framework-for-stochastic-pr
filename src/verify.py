@@ -26,6 +26,7 @@ def run_all():
     from src.claims.c3_opt_correctness import run as run_c3
     from src.claims.c4_opt_consistency import run as run_c4
     from src.claims.c5_coverage import run as run_c5
+    from src.claims.c6_applications import run as run_c6
 
     claims_to_run = [
         ("C1", run_c1),
@@ -33,6 +34,7 @@ def run_all():
         ("C3", run_c3),
         ("C4", run_c4),
         ("C5", run_c5),
+        ("C6", run_c6),
     ]
 
     for label, fn in claims_to_run:
@@ -81,6 +83,9 @@ def write_eval(elapsed: float):
         elif label == "C4":
             detail = (f"values converge={res.get('values_converge')}, "
                       f"solutions converge={res.get('solutions_converge')}")
+        elif label == "C6":
+            detail = (f"productmix APUB better={res.get('productmix', {}).get('apub_better_at_some_N')}, "
+                      f"newsvendor APUB better={res.get('newsvendor', {}).get('apub_better_at_some_N')}")
         lines.append(f"| {label} | {ev} | {detail} |")
     lines.append("")
 
