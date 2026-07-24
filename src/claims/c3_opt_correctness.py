@@ -55,16 +55,15 @@ def _solve_apub_newsvendor(data: np.ndarray, alpha: float, M: int,
     """Solve APUB-M for the newsvendor problem.
 
     Returns (optimal_q, optimal_value) where optimal_value = APUB at optimal_q.
-    Uses vectorised bootstrap across the q-grid.
+    Processes one q at a time to keep memory at O(M*N) instead of O(M*N*n_q).
     """
     N = len(data)
-    costs = np.empty((N, len(q_grid)))
-    for j, q in enumerate(q_grid):
-        costs[:, j] = _newsvendor_cost(q, data)
     idx = rng.integers(0, N, size=(M, N))
-    boot_costs = costs[idx]
-    boot_means = boot_costs.mean(axis=1)
-    apub_values = np.array([apub_cvar(boot_means[:, j], alpha) for j in range(len(q_grid))])
+    apub_values = np.empty(len(q_grid))
+    for j, q in enumerate(q_grid):
+        costs_j = _newsvendor_cost(q, data)
+        boot_means_j = costs_j[idx].mean(axis=1)
+        apub_values[j] = apub_cvar(boot_means_j, alpha)
     j_star = int(np.argmin(apub_values))
     return float(q_grid[j_star]), float(apub_values[j_star])
 
