@@ -22,7 +22,14 @@ def run_all():
     t0 = time.time()
 
     from src.claims.c1_definition import run as run_c1
-    claims_to_run = [("C1", run_c1)]
+    from src.claims.c2_convergence import run as run_c2
+    from src.claims.c5_coverage import run as run_c5
+
+    claims_to_run = [
+        ("C1", run_c1),
+        ("C2", run_c2),
+        ("C5", run_c5),
+    ]
 
     for label, fn in claims_to_run:
         try:
@@ -46,23 +53,31 @@ def write_eval(elapsed: float):
 
     lines = ["# EVAL.md — APUB Reproduction (arXiv 2403.08966)", ""]
     lines.append(f"**Runtime:** {elapsed:.1f}s")
+    lines.append(f"**Claims run:** {', '.join(RESULTS.keys())}")
     lines.append("")
     lines.append("| Claim | Verdict | Key Evidence |")
     lines.append("|-------|---------|--------------|")
     for label, res in RESULTS.items():
-        ev = ""
+        ev = res.get("verdict", "?")
+        detail = ""
         if label == "C1":
-            ev = (f"integral==CVaR (diff={res.get('integral_vs_cvar_max_diff', '?')}), "
-                  f"APUB>=mean={res.get('apub_geq_sample_mean')}, "
-                  f"APUB>=Efron={res.get('apub_geq_efron')}")
-        lines.append(f"| {label} | {res.get('verdict', '?')} | {ev} |")
+            detail = (f"integral==CVaR diff={res.get('integral_vs_cvar_max_diff', '?')}, "
+                      f"APUB>=mean={res.get('apub_geq_sample_mean')}")
+        elif label == "C2":
+            detail = (f"{res.get('n_distributions', '?')} dists, "
+                      f"rate={res.get('average_fitted_rate', '?')}, "
+                      f"all converge={res.get('all_configs_converge')}")
+        elif label == "C5":
+            detail = (f"APUB grows beyond nominal={res.get('checks', {}).get('apub_coverage_grows_beyond_nominal')}, "
+                      f"max={res.get('checks', {}).get('apub_max_coverage')}")
+        lines.append(f"| {label} | {ev} | {detail} |")
     lines.append("")
 
     for label, res in RESULTS.items():
         lines.append(f"## {label}: {res.get('verdict', '?')}")
         lines.append("")
         for k, v in res.items():
-            if k.startswith("detail_"):
+            if k.startswith("detail_") or k in ("coverage_data", "rate_analysis", "checks"):
                 continue
             if isinstance(v, (list, dict)):
                 continue
