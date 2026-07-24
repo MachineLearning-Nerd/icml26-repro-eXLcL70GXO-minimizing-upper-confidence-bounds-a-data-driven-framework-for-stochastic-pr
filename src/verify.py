@@ -23,11 +23,15 @@ def run_all():
 
     from src.claims.c1_definition import run as run_c1
     from src.claims.c2_convergence import run as run_c2
+    from src.claims.c3_opt_correctness import run as run_c3
+    from src.claims.c4_opt_consistency import run as run_c4
     from src.claims.c5_coverage import run as run_c5
 
     claims_to_run = [
         ("C1", run_c1),
         ("C2", run_c2),
+        ("C3", run_c3),
+        ("C4", run_c4),
         ("C5", run_c5),
     ]
 
@@ -70,6 +74,13 @@ def write_eval(elapsed: float):
         elif label == "C5":
             detail = (f"APUB grows beyond nominal={res.get('checks', {}).get('apub_coverage_grows_beyond_nominal')}, "
                       f"max={res.get('checks', {}).get('apub_max_coverage')}")
+        elif label == "C3":
+            detail = (f"APUB cov above nominal={res.get('apub_coverage_above_nominal')}, "
+                      f"at N_max={res.get('apub_coverage_at_largest_N')}, "
+                      f"SAA neg control={res.get('saa_below_apub_negative_control')}")
+        elif label == "C4":
+            detail = (f"values converge={res.get('values_converge')}, "
+                      f"solutions converge={res.get('solutions_converge')}")
         lines.append(f"| {label} | {ev} | {detail} |")
     lines.append("")
 
